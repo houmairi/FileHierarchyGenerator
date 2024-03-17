@@ -2,13 +2,14 @@
 
 File Hierarchy Generator is a versatile tool designed to streamline the process of creating structured file hierarchies for your projects. With support for multiple programming languages, including Python, C#, and C++, this tool allows you to automatically generate a base project structure with just a few commands. It's an ideal solution for developers looking to kickstart their projects without the hassle of manually creating directories and files.
 
+Hint: File hierarchies can easily be created with Language-Specific Markup Schemas (LLMS) such as CHATGPT, Claude, Gemini, and many others, which you can then paste into this tool, which creates the given file hierarchy.
+
 ## Features
 
-    Support for generating file structures for Python, C#, and C++ projects.
-    Command-line interface (CLI) for easy integration into automated workflows or build systems.
-    Ability to customize the file hierarchy as per your project needs.
-    Simple, yet powerful, validation to ensure correct file and directory names.
-    File hierarchies can easily be created with Language-Specific Markup Schemas (LLMS) such as CHATGPT, Claude, Gemini, and many others.
+- [x] Support for generating file structures for Python, C#, and C++ projects.
+- [x] Command-line interface (CLI) for easy integration into automated workflows or build systems.
+- [x] Ability to ustomize the file hierarchy as per your project needs.
+- [x] Simple, yet powerful, validation to ensure correct file and directory names.
 
 ## Getting Started
 
@@ -24,6 +25,18 @@ Before running the File Hierarchy Generator, ensure you have the following insta
     Navigate to the directory containing file_hierarchy_generator.py.
 
 ## Usage
+
+### GUI
+
+1. Run gui.exe.
+2. Select programming language from dropdown.
+3. Customize file hierarchy in text area (optional).
+4. Click "Browse" to choose output directory.
+5. Click "Generate" to create file hierarchy.
+6. Success or error message will be displayed.
+7. Close the application when done.
+
+### CLI
 
 To use the File Hierarchy Generator, you can run the file_hierarchy_generator.py script with the following CLI commands:
 
