@@ -33,6 +33,19 @@ Before running the File Hierarchy Generator, ensure you have the following insta
 3. Customize file hierarchy in text area (optional).
 4. Click "Browse" to choose output directory.
 5. Click "Generate" to create file hierarchy.
+
+Here is the template for python projects, which can be selected in the GUI (for understanding purposes):
+```
+MyProject/
+    src/
+        __init__.py
+        main.py
+    tests/
+        __init__.py
+        test_main.py
+    requirements.txt
+    README.md
+```
 6. Success or error message will be displayed.
 7. Close the application when done.
 

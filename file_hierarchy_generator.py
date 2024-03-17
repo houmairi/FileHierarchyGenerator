@@ -72,44 +72,44 @@ def get_python_project_structure():
     """
     Return the project structure for a Python project.
     """
-    return """
-src/
-    __init__.py
-    main.py
-tests/
-    __init__.py
-    test_main.py
-requirements.txt
-README.md
+    return """MyProject/
+    src/
+        __init__.py
+        main.py
+    tests/
+        __init__.py
+        test_main.py
+    requirements.txt
+    README.md
 """
 
 def get_csharp_project_structure():
     """
     Return the project structure for a C# project.
     """
-    return """
-src/
-    Program.cs
-    MyApp.csproj
-tests/
-    MyAppTests.cs
-    MyAppTests.csproj
-README.md
+    return """MyProject/
+    src/
+        Program.cs
+        MyApp.csproj
+    tests/
+        MyAppTests.cs
+        MyAppTests.csproj
+    README.md
 """
 
 def get_cpp_project_structure():
     """
     Return the project structure for a C++ project.
     """
-    return """
-src/
-    main.cpp
-    Makefile
-include/
-    myapp.h
-tests/
-    test_main.cpp
-README.md
+    return """MyProject/    
+    src/
+        main.cpp
+        Makefile
+    include/
+        myapp.h
+    tests/
+        test_main.cpp
+    README.md
 """
 
 def main():
