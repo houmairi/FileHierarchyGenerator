@@ -71,6 +71,8 @@ class FileHierarchyGeneratorGUI(QWidget):
         try:
             create_file_hierarchy(output_dir, hierarchy)
             QMessageBox.information(self, "Success", "File hierarchy generated successfully.")
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", f"Invalid file hierarchy:\n{str(e)}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred:\n{str(e)}")
 

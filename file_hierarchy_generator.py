@@ -1,4 +1,23 @@
 import os
+import re
+
+def is_valid_name(name):
+    return re.match(r'^[a-zA-Z0-9_\-\.]+$', name) is not None
+
+def validate_structure(structure):
+    directories = set()
+    for item in structure.split("\n"):
+        item = item.strip()
+        if not item:
+            continue
+
+        if not is_valid_name(item):
+            raise ValueError(f"Invalid name: {item}")
+
+        if item.endswith("/"):
+            if item[:-1] in directories:
+                raise ValueError(f"Duplicate directory: {item}")
+            directories.add(item[:-1])
 
 def get_python_project_structure():
     return """src/
@@ -33,6 +52,8 @@ README.md
 """
 
 def create_file_hierarchy(directory, structure):
+    validate_structure(structure)
+
     for item in structure.split("\n"):
         item = item.strip()
         if not item:
