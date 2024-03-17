@@ -1,4 +1,5 @@
 import sys
+import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton, QFileDialog, QMessageBox, QComboBox
 from file_hierarchy_generator import create_file_hierarchy, get_python_project_structure, get_csharp_project_structure, get_cpp_project_structure
 
@@ -39,6 +40,17 @@ class FileHierarchyGeneratorGUI(QWidget):
         output_layout.addWidget(output_button)
         layout.addLayout(output_layout)
 
+        # Copy file hierarchy button
+        copy_layout = QHBoxLayout()
+        copy_label = QLabel("Copy file hierarchy from:")
+        self.copy_dir = QLabel("")
+        copy_button = QPushButton("Browse")
+        copy_button.clicked.connect(self.browse_copy_dir)
+        copy_layout.addWidget(copy_label)
+        copy_layout.addWidget(self.copy_dir)
+        copy_layout.addWidget(copy_button)
+        layout.addLayout(copy_layout)
+
         # Generate button
         generate_button = QPushButton("Generate")
         generate_button.clicked.connect(self.generate_file_hierarchy)
@@ -51,6 +63,23 @@ class FileHierarchyGeneratorGUI(QWidget):
         output_dir = QFileDialog.getExistingDirectory(self, "Select Output Directory")
         if output_dir:
             self.output_dir.setText(output_dir)
+
+    def browse_copy_dir(self):
+        copy_dir = QFileDialog.getExistingDirectory(self, "Select Directory to Copy")
+        if copy_dir:
+            self.copy_dir.setText(copy_dir)
+            self.input_text.setPlainText(self.generate_file_hierarchy_string(copy_dir))
+
+    def generate_file_hierarchy_string(self, directory):
+        hierarchy = []
+        for root, dirs, files in os.walk(directory):
+            level = root.replace(directory, '').count(os.sep)
+            indent = ' ' * 4 * level
+            hierarchy.append(f"{indent}{os.path.basename(root)}/")
+            subindent = ' ' * 4 * (level + 1)
+            for file in files:
+                hierarchy.append(f"{subindent}{file}")
+        return '\n'.join(hierarchy)
 
     def update_file_hierarchy(self, language):
         if language == "Python":

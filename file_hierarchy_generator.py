@@ -36,16 +36,37 @@ def create_file_hierarchy(directory, structure):
     """
     validate_structure(structure)
 
-    for item in structure.split("\n"):
-        item = item.strip()
-        if not item:
-            continue
+    def process_structure(structure, current_dir, prev_level):
+        lines = structure.split("\n")
+        index = 0
 
-        path = os.path.join(directory, item)
-        if item.endswith("/"):
-            os.makedirs(path, exist_ok=True)
-        else:
-            open(path, "w").close()
+        while index < len(lines):
+            line = lines[index].strip()
+            if not line:
+                index += 1
+                continue
+
+            level = len(lines[index]) - len(lines[index].lstrip())
+
+            if prev_level is None or level > prev_level:
+                item = line.strip()
+                path = os.path.join(current_dir, item)
+                if item.endswith("/"):
+                    os.makedirs(path, exist_ok=True)
+                    next_level = level
+                    substructure = []
+                    index += 1
+                    while index < len(lines) and len(lines[index]) - len(lines[index].lstrip()) > level:
+                        substructure.append(lines[index])
+                        index += 1
+                    process_structure("\n".join(substructure), path, next_level)
+                else:
+                    open(path, "w").close()
+                    index += 1
+            else:
+                return
+
+    process_structure(structure, directory, None)
 
 def get_python_project_structure():
     """
