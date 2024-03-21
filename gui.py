@@ -124,7 +124,7 @@ class FileHierarchyGeneratorGUI(QWidget):
 
         for line in lines:
             # Replace special symbols with a single space
-            line = line.replace("│", "").replace("├", "").replace("└", "").replace("─", ""))
+            line = line.replace("│", "").replace("├", "").replace("└", "").replace("─", "")
             # Skip empty lines
             if line:
                 transformed_lines.append(line)

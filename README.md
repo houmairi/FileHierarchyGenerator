@@ -46,6 +46,21 @@ MyProject/
     requirements.txt
     README.md
 ```
+now this template is also usable:
+```
+MyProject/
+├── src/
+│   ├── __init__.py
+│   └── main.py
+│
+├── tests/
+│   ├── __init__.py
+│   └── test_main.py
+│
+├── requirements.txt
+└── README.md
+```
+
 6. Success or error message will be displayed.
 7. Close the application when done.
 
