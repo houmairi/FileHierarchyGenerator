@@ -1,4 +1,5 @@
 import sys
+import traceback
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton, QFileDialog, QMessageBox, QComboBox
 from file_hierarchy_generator import create_file_hierarchy, get_python_project_structure, get_csharp_project_structure, get_cpp_project_structure
@@ -92,18 +93,44 @@ class FileHierarchyGeneratorGUI(QWidget):
     def generate_file_hierarchy(self):
         hierarchy = self.input_text.toPlainText()
         output_dir = self.output_dir.text()
+        output_dir = os.path.normpath(output_dir)  # Normalize the directory path
 
         if not hierarchy.strip() or not output_dir:
             QMessageBox.warning(self, "Warning", "Please enter the file hierarchy and select an output directory.")
             return
 
         try:
-            create_file_hierarchy(output_dir, hierarchy)
+            # Transform the hierarchy
+            transformed_hierarchy = self.transform_hierarchy(hierarchy)
+            print(f"Output directory: {output_dir}")  # Print the output directory path
+            create_file_hierarchy(output_dir, transformed_hierarchy)
             QMessageBox.information(self, "Success", "File hierarchy generated successfully.")
+        except FileNotFoundError as e:
+            print(f"Error: {str(e)}")  # Print the error message
+            print(f"Traceback: {traceback.format_exc()}")  # Print the traceback
+            QMessageBox.critical(self, "Error", f"Directory not found: {output_dir}")
         except ValueError as e:
+            print(f"Error: {str(e)}")  # Print the error message
+            print(f"Traceback: {traceback.format_exc()}")  # Print the traceback
             QMessageBox.critical(self, "Error", f"Invalid file hierarchy:\n{str(e)}")
         except Exception as e:
+            print(f"Error: {str(e)}")  # Print the error message
+            print(f"Traceback: {traceback.format_exc()}")  # Print the traceback
             QMessageBox.critical(self, "Error", f"An error occurred:\n{str(e)}")
+
+    def transform_hierarchy(self, hierarchy):
+        lines = hierarchy.split("\n")
+        transformed_lines = []
+
+        for line in lines:
+            # Replace special symbols with a single space
+            line = line.replace("│", "").replace("├", "").replace("└", "").replace("─", ""))
+            # Skip empty lines
+            if line:
+                transformed_lines.append(line)
+        f = open("log.txt", "a")
+        f.write("\n".join(transformed_lines)) 
+        return "\n".join(transformed_lines)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
