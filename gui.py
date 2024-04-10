@@ -135,39 +135,46 @@ class FileHierarchyGeneratorGUI(QWidget):
         return generated_hierarchy
 
     def update_file_hierarchy(self):
-            print("Updating file hierarchy...")
-            hierarchy = self.generate_file_hierarchy_string(self.copy_dir.text())
-            transformed_hierarchy = self.transform_hierarchy(hierarchy)
-            print(f"Transformed Hierarchy:\n{transformed_hierarchy}")
+        print("Updating file hierarchy...")
+        hierarchy = self.generate_file_hierarchy_string(self.copy_dir.text())
+        transformed_hierarchy = self.transform_hierarchy(hierarchy)
+        print(f"Transformed Hierarchy:\n{transformed_hierarchy}")
 
-            model = QStandardItemModel()
-            self.hierarchy_tree.setModel(model)
+        model = QStandardItemModel()
+        self.hierarchy_tree.setModel(model)
 
-            def populate_tree(parent_item, hierarchy_lines):
-                for line in hierarchy_lines:
-                    if not line.strip():
-                        continue
+        def populate_tree(parent_item, hierarchy_lines):
+            current_level = 0
+            stack = [(parent_item, current_level)]
 
-                    indent_level = len(line) - len(line.lstrip())
-                    item_text = line.strip()
+            for line in hierarchy_lines:
+                if not line.strip():
+                    continue
 
-                    if item_text.endswith("/"):
-                        item = QStandardItem(item_text[:-1])
-                        item.setEditable(False)
-                        parent_item.appendRow(item)
-                        sublines = []
-                        index = hierarchy_lines.index(line) + 1
-                        while index < len(hierarchy_lines) and len(hierarchy_lines[index]) - len(hierarchy_lines[index].lstrip()) > indent_level:
-                            sublines.append(hierarchy_lines[index])
-                            index += 1
-                        populate_tree(item, sublines)
+                item_indent_level = len(line) - len(line.lstrip())
+                item_text = line.strip()
+
+                while stack and item_indent_level <= stack[-1][1]:
+                    stack.pop()
+
+                if item_text.endswith("/"):
+                    item = QStandardItem(item_text[:-1])
+                    item.setEditable(False)
+                    if stack:
+                        stack[-1][0].appendRow(item)
                     else:
-                        item = QStandardItem(item_text)
-                        item.setEditable(False)
+                        parent_item.appendRow(item)
+                    stack.append((item, item_indent_level))
+                else:
+                    item = QStandardItem(item_text)
+                    item.setEditable(False)
+                    if stack:
+                        stack[-1][0].appendRow(item)
+                    else:
                         parent_item.appendRow(item)
 
-            populate_tree(model.invisibleRootItem(), transformed_hierarchy.split("\n"))
-            self.hierarchy_tree.expandAll()
+        populate_tree(model.invisibleRootItem(), transformed_hierarchy.split("\n"))
+        self.hierarchy_tree.expandAll()
 
     def generate_file_hierarchy(self):
         hierarchy = self.input_text.toPlainText()
