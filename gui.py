@@ -1,12 +1,15 @@
 import sys
 import traceback
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton, QFileDialog, QMessageBox, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit, QPushButton, QFileDialog, QMessageBox, QComboBox, QTreeView
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtCore import Qt
 from file_hierarchy_generator import create_file_hierarchy, get_python_project_structure, get_csharp_project_structure, get_cpp_project_structure
 
 class FileHierarchyGeneratorGUI(QWidget):
     def __init__(self):
         super().__init__()
+        self.hidden_folders = set()
         self.initUI()
 
     def initUI(self):
@@ -26,9 +29,18 @@ class FileHierarchyGeneratorGUI(QWidget):
         input_layout = QHBoxLayout()
         input_label = QLabel("File hierarchy:")
         self.input_text = QTextEdit()
+        self.input_text.setReadOnly(True)  # Make the input text read-only
         input_layout.addWidget(input_label)
         input_layout.addWidget(self.input_text)
         layout.addLayout(input_layout)
+        
+        # File hierarchy tree view
+        hierarchy_layout = QHBoxLayout()
+        hierarchy_label = QLabel("File hierarchy:")
+        self.hierarchy_tree = QTreeView()
+        hierarchy_layout.addWidget(hierarchy_label)
+        hierarchy_layout.addWidget(self.hierarchy_tree)
+        layout.addLayout(hierarchy_layout)
 
         # Output directory label and button
         output_layout = QHBoxLayout()
@@ -51,6 +63,19 @@ class FileHierarchyGeneratorGUI(QWidget):
         copy_layout.addWidget(self.copy_dir)
         copy_layout.addWidget(copy_button)
         layout.addLayout(copy_layout)
+        
+        # Hide folders layout
+        hide_folders_layout = QHBoxLayout()
+        hide_folders_label = QLabel("Select folders to hide:")
+        self.hide_folders_text = QTextEdit()
+        hide_folders_layout.addWidget(hide_folders_label)
+        hide_folders_layout.addWidget(self.hide_folders_text)
+        layout.addLayout(hide_folders_layout)
+        
+        # Hide selected folders
+        self.input_text = QTextEdit()
+        self.input_text.setMouseTracking(True)
+        self.input_text.mousePressEvent = self.on_input_text_mouse_press
 
         # Generate button
         generate_button = QPushButton("Generate")
@@ -69,26 +94,80 @@ class FileHierarchyGeneratorGUI(QWidget):
         copy_dir = QFileDialog.getExistingDirectory(self, "Select Directory to Copy")
         if copy_dir:
             self.copy_dir.setText(copy_dir)
-            self.input_text.setPlainText(self.generate_file_hierarchy_string(copy_dir))
+            print(f"Selected directory: {copy_dir}")  # Add this print statement
+            self.update_file_hierarchy()
+            
+    def on_input_text_mouse_press(self, event):
+        if event.modifiers() == Qt.ControlModifier:
+            cursor = self.input_text.cursorForPosition(event.pos())
+            cursor.select(QTextCursor.LineUnderCursor)
+            selected_text = cursor.selectedText().strip()
+            if selected_text.endswith('/'):
+                self.toggle_hidden_folder(selected_text[:-1])
+        else:
+            QTextEdit.mousePressEvent(self.input_text, event)
+            
+    def toggle_hidden_folder(self, folder):
+        if folder in self.hidden_folders:
+            self.hidden_folders.remove(folder)
+        else:
+            self.hidden_folders.add(folder)
+        self.update_hidden_folders_text()
+        self.update_file_hierarchy()
+        
+    def update_hidden_folders_text(self):
+        self.hide_folders_text.setPlainText('\n'.join(sorted(self.hidden_folders)))
 
     def generate_file_hierarchy_string(self, directory):
         hierarchy = []
+        hide_folders = self.hide_folders_text.toPlainText().split('\n')
         for root, dirs, files in os.walk(directory):
             level = root.replace(directory, '').count(os.sep)
             indent = ' ' * 4 * level
-            hierarchy.append(f"{indent}{os.path.basename(root)}/")
-            subindent = ' ' * 4 * (level + 1)
-            for file in files:
-                hierarchy.append(f"{subindent}{file}")
-        return '\n'.join(hierarchy)
+            folder_name = os.path.basename(root)
+            if folder_name not in hide_folders:
+                hierarchy.append(f"{indent}{folder_name}/")
+                subindent = ' ' * 4 * (level + 1)
+                for file in files:
+                    hierarchy.append(f"{subindent}{file}")
+        generated_hierarchy = '\n'.join(hierarchy)
+        print(f"Generated Hierarchy:\n{generated_hierarchy}")  # Add this print statement
+        return generated_hierarchy
 
-    def update_file_hierarchy(self, language):
-        if language == "Python":
-            self.input_text.setPlainText(get_python_project_structure())
-        elif language == "C#":
-            self.input_text.setPlainText(get_csharp_project_structure())
-        elif language == "C++":
-            self.input_text.setPlainText(get_cpp_project_structure())
+    def update_file_hierarchy(self):
+            print("Updating file hierarchy...")
+            hierarchy = self.generate_file_hierarchy_string(self.copy_dir.text())
+            transformed_hierarchy = self.transform_hierarchy(hierarchy)
+            print(f"Transformed Hierarchy:\n{transformed_hierarchy}")
+
+            model = QStandardItemModel()
+            self.hierarchy_tree.setModel(model)
+
+            def populate_tree(parent_item, hierarchy_lines):
+                for line in hierarchy_lines:
+                    if not line.strip():
+                        continue
+
+                    indent_level = len(line) - len(line.lstrip())
+                    item_text = line.strip()
+
+                    if item_text.endswith("/"):
+                        item = QStandardItem(item_text[:-1])
+                        item.setEditable(False)
+                        parent_item.appendRow(item)
+                        sublines = []
+                        index = hierarchy_lines.index(line) + 1
+                        while index < len(hierarchy_lines) and len(hierarchy_lines[index]) - len(hierarchy_lines[index].lstrip()) > indent_level:
+                            sublines.append(hierarchy_lines[index])
+                            index += 1
+                        populate_tree(item, sublines)
+                    else:
+                        item = QStandardItem(item_text)
+                        item.setEditable(False)
+                        parent_item.appendRow(item)
+
+            populate_tree(model.invisibleRootItem(), transformed_hierarchy.split("\n"))
+            self.hierarchy_tree.expandAll()
 
     def generate_file_hierarchy(self):
         hierarchy = self.input_text.toPlainText()
@@ -123,13 +202,10 @@ class FileHierarchyGeneratorGUI(QWidget):
         transformed_lines = []
 
         for line in lines:
-            # Replace special symbols with a single space
-            line = line.replace("│", "").replace("├", "").replace("└", "").replace("─", "")
-            # Skip empty lines
-            if line:
+            line = line.strip()
+            if line and not any(folder in line for folder in self.hidden_folders):
                 transformed_lines.append(line)
-        f = open("log.txt", "a")
-        f.write("\n".join(transformed_lines)) 
+
         return "\n".join(transformed_lines)
 
 if __name__ == "__main__":
